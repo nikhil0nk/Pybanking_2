@@ -220,42 +220,33 @@ def pretrained(model_name="LGBM"):
     return train(tr_df,model_name)
 
 if __name__ == '__main__':
-    train_df=get_data()
-    model_name="LGBM"
-    tr_df=important_feat(train_df,model_name)
-    m=pretrained(model_name)
-    print(m)
-    train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,test_y=preprocess_inputs(tr_df,model_name)
-    print(predict(test_X,m,model_name))
-    analysis(train_df,"sweetviz")
+    df = get_data()
 
-    # df = get_data()
-
-    # model_names = [
-    #         "Logistic_Regression",
-    #         "Support_Vector_Machine",
-    #         "Support_Vector_Machine_Optimized",
-    #         "Decision_Tree",
-    #         "Neural_Network",
-    #         "Random_Forest",
-    #         "Lasso",
-    #         "LGBM"
-    # ]
-    # for model in model_names:
-    #     df_feat = important_feat(df,model)
-    #     m = pretrained(model)
-    #     print(m)
-    #     train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,test_y = preprocess_inputs(df,model)
-    #     print(predict(test_X, m, model))
+    model_names = [
+            "Logistic_Regression",
+            "Support_Vector_Machine",
+            "Support_Vector_Machine_Optimized",
+            "Decision_Tree",
+            "Neural_Network",
+            "Random_Forest",
+            "Lasso",
+            "LGBM"
+    ]
+    for model in model_names:
+        df_feat = important_feat(df,model)
+        m = pretrained(model)
+        print(m)
+        train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,test_y = preprocess_inputs(df,model)
+        print(predict(test_X, m, model))
         
-    # types = [
-    #     "dataprep",
-    #     "profiling",
-    #     "sweetviz"
-    # ]
-    # for t in types:
-    #     analysis(df, t)
-    #     print("**********************"+t+"******************")
+    types = [
+        "dataprep",
+        "profiling",
+        "sweetviz"
+    ]
+    for t in types:
+        analysis(df, t)
+        print("**********************"+t+"******************")
 
 
 
