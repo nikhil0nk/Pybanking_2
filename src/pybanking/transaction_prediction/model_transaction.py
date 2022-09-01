@@ -42,13 +42,13 @@ def analysis(df, input = "dataprep"):
         return "Wrong Input"
 
 # Preprocessing
-def preprocess_inputs(df_train, df_test, model_name = "Logistic_Regression"):
+def preprocess_inputs(df_train):
     y = df_train["target"]
     X = df_train.drop("target", axis = 1)
     return X, y
 
-def train(df_train, df_test, model_name = "Logistic_Regression"):
-    X, y = preprocess_inputs(df_train, df_test)
+def train(df_train, model_name = "Logistic_Regression"):
+    X, y = preprocess_inputs(df_train)
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, random_state=123)
 
@@ -122,7 +122,7 @@ def train(df_train, df_test, model_name = "Logistic_Regression"):
 
 def pretrained(model_name = "Logistic_Regression"):
     df_train, df_test = get_data()
-    return train(df_train, df_test, model_name)
+    return train(df_train, model_name)
 
 
 def predict(test_X, model):
@@ -134,9 +134,25 @@ def predict(test_X, model):
 
 if __name__ == '__main__':
     tr, ts = get_data()
-    model = "Random_Forest"
-    m = pretrained(model)
-    print(m)
-    X, y = preprocess_inputs(tr, ts)
-    print(predict(ts, m))
-    analysis(tr, "profiling")
+    model_names = [
+            "Logistic_Regression",
+            "Support_Vector_Machine",
+            "Support_Vector_Machine_Optimized",
+            "Decision_Tree",
+            "Neural_Network",
+            "Random_Forest"
+    ]
+    for model in model_names:
+        m = pretrained(model)
+        print(m)
+        X, y = preprocess_inputs(tr)
+        print(predict(ts, m))
+
+    types = [
+        "dataprep",
+        "profiling",
+        "sweetviz"
+    ]
+    for t in types:
+        analysis(tr, ts, t)
+        print("**********************"+t+"******************")

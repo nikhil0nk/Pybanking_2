@@ -204,9 +204,26 @@ def predict(test_X, model):
 
 if __name__ == '__main__':
     df = get_data()
-    model = "Pycaret_Best"
-    m = pretrained(model)
-    print(m)
-    X, y = preprocess_inputs(df, model)
-    print(predict(X, m))
-    analysis(df, "profiling")
+
+    model_names = [
+            "Logistic_Regression",
+            "Support_Vector_Machine",
+            "Support_Vector_Machine_Optimized",
+            "Decision_Tree",
+            "Neural_Network",
+            "Random_Forest"
+    ]
+    for model in model_names:
+        m = pretrained(model)
+        print(m)
+        X, y = preprocess_inputs(df, model)
+        print(predict(X, m))
+        
+    types = [
+        "dataprep",
+        "profiling",
+        "sweetviz"
+    ]
+    for t in types:
+        analysis(df, t)
+        print("**********************"+t+"******************")

@@ -68,7 +68,7 @@ def train(tr_df,model_name="LGBM"):
         "Neural_Network",
         "Random_Forest"
     ]
-    
+
     if model_name=="LGBM":
         params = {
             "objective" : "regression",
@@ -228,6 +228,34 @@ if __name__ == '__main__':
     train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,test_y=preprocess_inputs(tr_df,model_name)
     print(predict(test_X,m,model_name))
     analysis(train_df,"sweetviz")
+
+    # df = get_data()
+
+    # model_names = [
+    #         "Logistic_Regression",
+    #         "Support_Vector_Machine",
+    #         "Support_Vector_Machine_Optimized",
+    #         "Decision_Tree",
+    #         "Neural_Network",
+    #         "Random_Forest",
+    #         "Lasso",
+    #         "LGBM"
+    # ]
+    # for model in model_names:
+    #     df_feat = important_feat(df,model)
+    #     m = pretrained(model)
+    #     print(m)
+    #     train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,test_y=preprocess_inputs(df,model)
+    #     print(predict(test_X, m, model))
+        
+    # types = [
+    #     "dataprep",
+    #     "profiling",
+    #     "sweetviz"
+    # ]
+    # for t in types:
+    #     analysis(df, t)
+    #     print("**********************"+t+"******************")
 
 
 
