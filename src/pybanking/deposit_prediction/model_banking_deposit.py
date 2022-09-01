@@ -189,7 +189,7 @@ if __name__ == '__main__':
     for model in model_names:
         m = pretrained(model)
         print(m)
-        X, y = preprocess_inputs(tr)
+        X, y = preprocess_inputs(tr, ts, model)
         print(predict(ts, m))
     
     types = [

@@ -245,7 +245,7 @@ if __name__ == '__main__':
     #     df_feat = important_feat(df,model)
     #     m = pretrained(model)
     #     print(m)
-    #     train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,test_y=preprocess_inputs(df,model)
+    #     train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,test_y = preprocess_inputs(df,model)
     #     print(predict(test_X, m, model))
         
     # types = [
