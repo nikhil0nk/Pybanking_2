@@ -211,7 +211,8 @@ if __name__ == '__main__':
             "Support_Vector_Machine_Optimized",
             "Decision_Tree",
             "Neural_Network",
-            "Random_Forest"
+            "Random_Forest",
+            "Pycaret_Best"
     ]
     for model in model_names:
         m = pretrained(model)

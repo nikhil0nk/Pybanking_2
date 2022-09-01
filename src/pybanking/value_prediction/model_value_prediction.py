@@ -21,6 +21,8 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.linear_model import Lasso
 
+import warnings
+warnings.filterwarnings("ignore")
 pd.options.mode.chained_assignment = None
 pd.options.display.max_columns = 9999
 
@@ -28,6 +30,24 @@ pd.options.display.max_columns = 9999
 def get_data(url1='https://raw.githubusercontent.com/shorthills-tech/open-datasets/main/Value_prediction_train.csv'):
     train_df = pd.read_csv(url1,index_col=0)
     return train_df
+
+#Analysis
+
+def analysis(train_df, input = "dataprep"):
+    script_dir = os.path.dirname( __file__ )
+    mymodule_dir = os.path.join( script_dir, '..', 'EDA' )
+    sys.path.append( mymodule_dir )
+    from data_analysis import Analysis
+    da = Analysis()
+
+    if input == "dataprep":
+        return da.dataprep_analysis(train_df)
+    elif input == "profiling":
+        return da.pandas_analysis(train_df)
+    elif input == "sweetviz":
+        return da.sweetviz_analysis(train_df)
+    else:
+        return "Wrong Input"
 
 #Exctract Important Features
 def important_feat(train_df,model_name="LGBM"):
@@ -50,6 +70,43 @@ def important_feat(train_df,model_name="LGBM"):
     
         return tr_df
 
+#Preprocessing
+def preprocess_inputs(train_df,model_name="LGBM"):
+    unique_df = train_df.nunique().reset_index()
+    unique_df.columns = ["col_name", "unique_count"]
+    constant_df = unique_df[unique_df["unique_count"]==1]
+    index = pd.Index(range(0, 1784, 1))
+    train_df=train_df.set_index(index)
+    train_X = train_df.drop(constant_df.col_name.tolist() + [ "target"], axis=1)
+    train_y = np.log1p(train_df["target"].values)
+    dev_X=0
+    val_X=0
+    dev_y=0
+    val_y=0
+    #Splitting Data
+    X_tr_sp, X_te_sp, y_tr_sp, y_te_sp = train_test_split(train_X, train_y, test_size=0.2, random_state=0)
+    
+    if model_name=="Lasso" :
+        feat = SelectKBest(mutual_info_regression,k=200)
+        X_tr = feat.fit_transform(X_tr_sp,y_tr_sp)
+        X_te = feat.transform(X_te_sp)
+        return X_tr,X_te,y_tr_sp,dev_X,val_X,dev_y,val_y,y_te_sp
+    
+    if model_name=="LGBM":
+        kf = model_selection.KFold(n_splits=5, shuffle=True, random_state=2017)
+        for dev_index, val_index in kf.split(X_tr_sp):
+            dev_X, val_X = train_X.loc[dev_index,:], train_X.loc[val_index,:]
+            dev_y, val_y = train_y[dev_index], train_y[val_index]
+        #Doesnt Require splitting
+        return train_X,X_te_sp,train_y,dev_X,val_X,dev_y,val_y,y_te_sp
+    
+    if model_name == "Pycaret_Best":
+        train_X=train_df
+        #Cant split for Pycaret
+        return train_X,X_te_sp,train_y,dev_X,val_X,dev_y,val_y,y_te_sp       
+    
+    return X_tr_sp,X_te_sp,y_tr_sp,dev_X,val_X,dev_y,val_y,y_te_sp
+
 #Training
 def train(tr_df,model_name="LGBM"):
     train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,y_test= preprocess_inputs(tr_df,model_name)
@@ -58,8 +115,8 @@ def train(tr_df,model_name="LGBM"):
             SVR(),
             DecisionTreeClassifier(),
             MLPClassifier(),
-            RandomForestClassifier()  
-        ]
+            RandomForestClassifier()
+    ]
     
     model_names = [
         "Logistic_Regression",
@@ -133,70 +190,12 @@ def train(tr_df,model_name="LGBM"):
 
     if model_name == "Pycaret_Best":
         subprocess.run(['pip', 'install', '--pre', 'pycaret'])
-        from pycaret.regression import setup, compare_models,predict_model
+        from pycaret.regression import setup, compare_models
         exp_name = setup(data = train_X,  target = 'target')
-        best = compare_models(exclude = ['lr', 'svm', 'rbfsvm', 'dt', 'rf','lightgbm','lasso'])
+        best = compare_models(exclude = ['lr', 'svm', 'rbfsvm', 'dt', 'rf','lasso'])
         return best
-
     else:
         return "Model Unrecognized"
-  
-#Analysis
-import warnings
-warnings.filterwarnings("ignore")
-def analysis(train_df, input = "dataprep"):
-    script_dir = os.path.dirname( __file__ )
-    mymodule_dir = os.path.join( script_dir, '..', 'EDA' )
-    sys.path.append( mymodule_dir )
-    from data_analysis import Analysis
-    da = Analysis()
-
-    if input == "dataprep":
-        return da.dataprep_analysis(train_df)
-    elif input == "profiling":
-        return da.pandas_analysis(train_df)
-    elif input == "sweetviz":
-        return da.sweetviz_analysis(train_df)
-    else:
-        return "Wrong Input"
-
-#Preprocessing
-def preprocess_inputs(train_df,model_name="LGBM"):
-    unique_df = train_df.nunique().reset_index()
-    unique_df.columns = ["col_name", "unique_count"]
-    constant_df = unique_df[unique_df["unique_count"]==1]
-    index = pd.Index(range(0, 1784, 1))
-    train_df=train_df.set_index(index)
-    train_X = train_df.drop(constant_df.col_name.tolist() + [ "target"], axis=1)
-    train_y = np.log1p(train_df["target"].values)
-    dev_X=0
-    val_X=0
-    dev_y=0
-    val_y=0
-    #Splitting Data
-    X_tr_sp, X_te_sp, y_tr_sp, y_te_sp = train_test_split(train_X, train_y, test_size=0.2, random_state=0)
-    
-    if model_name=="Lasso" :
-        feat = SelectKBest(mutual_info_regression,k=200)
-        X_tr = feat.fit_transform(X_tr_sp,y_tr_sp)
-        X_te = feat.transform(X_te_sp)
-        return X_tr,X_te,y_tr_sp,dev_X,val_X,dev_y,val_y,y_te_sp
-    
-    if model_name=="LGBM":
-        kf = model_selection.KFold(n_splits=5, shuffle=True, random_state=2017)
-        for dev_index, val_index in kf.split(X_tr_sp):
-            dev_X, val_X = train_X.loc[dev_index,:], train_X.loc[val_index,:]
-            dev_y, val_y = train_y[dev_index], train_y[val_index]
-        #Doesnt Require splitting
-        return train_X,X_te_sp,train_y,dev_X,val_X,dev_y,val_y,y_te_sp
-    
-    if model_name == "Pycaret_Best":
-        train_X=train_df
-        #Cant split for Pycaret
-        return train_X,X_te_sp,train_y,dev_X,val_X,dev_y,val_y,y_te_sp       
-    
-    return X_tr_sp,X_te_sp,y_tr_sp,dev_X,val_X,dev_y,val_y,y_te_sp
-
 
 #Prediction
 def predict(test_X, model,model_name):
@@ -205,12 +204,10 @@ def predict(test_X, model,model_name):
     
     elif model_name == "LGBM":
         pred_test_y = model.predict(test_X, num_iteration=model.best_iteration)
-        #f=model.score(test_y,pred_test_y)
         return pred_test_y
     
     else:
         pred_test_y=model.predict(test_X)
-        #f=metrics.mean_squared_log_error(test_y, pred_test_y,squared=False)
         return pred_test_y
 
 #Pretraining
@@ -230,13 +227,14 @@ if __name__ == '__main__':
             "Neural_Network",
             "Random_Forest",
             "Lasso",
-            "LGBM"
+            "LGBM",
+            "Pycaret_Best"
     ]
     for model in model_names:
-        df_feat = important_feat(df,model)
+        df_feat = important_feat(df, model)
         m = pretrained(model)
         print(m)
-        train_X,test_X,train_y,dev_X,val_X,dev_y,val_y,test_y = preprocess_inputs(df,model)
+        train_X, test_X, train_y, dev_X, val_X, dev_y, val_y, test_y = preprocess_inputs(df_feat, model)
         print(predict(test_X, m, model))
         
     types = [
@@ -245,7 +243,7 @@ if __name__ == '__main__':
         "sweetviz"
     ]
     for t in types:
-        analysis(df, t)
+        analysis(df_feat, t)
         print("**********************"+t+"******************")
 
 
